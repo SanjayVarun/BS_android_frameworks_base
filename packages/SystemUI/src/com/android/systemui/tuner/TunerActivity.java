@@ -22,6 +22,7 @@ import android.support.v14.preference.PreferenceFragment;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceScreen;
 import android.util.Log;
+import android.view.MenuItem;
 
 import com.android.settingslib.drawer.SettingsDrawerActivity;
 import com.android.systemui.R;
@@ -44,6 +45,8 @@ public class TunerActivity extends SettingsDrawerActivity implements
                 fragment = new DemoModeFragment();
             } else if ("com.android.settings.action.NAV_BAR_TUNER".equals(action)) {
                 fragment = new NavBarTuner();
+            } else if ("com.android.settings.action.POWER_NOTIF_CONTROLS".equals(action)) {
+                fragment = new PowerNotificationControlsFragment();
             } else {
                 fragment = new TunerFragment();
             }
@@ -67,6 +70,15 @@ public class TunerActivity extends SettingsDrawerActivity implements
         } else {
             getActionBar().setTitle(mInitialTitle);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -44,7 +44,6 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.DropBoxManager;
 import android.os.IBinder;
@@ -1284,6 +1283,19 @@ public final class Settings {
             = "android.settings.VR_LISTENER_SETTINGS";
 
     /**
+     * Activity Action: Show Storage Manager settings.
+     * <p>
+     * Input: Nothing.
+     * <p>
+     * Output: Nothing.
+     *
+     * @hide
+     */
+    @SdkConstant(SdkConstantType.ACTIVITY_INTENT_ACTION)
+    public static final String ACTION_STORAGE_MANAGER_SETTINGS
+            = "android.settings.STORAGE_MANAGER_SETTINGS";
+
+    /**
      * Activity Action: Allows user to select current webview implementation.
      * <p>
      * Input: Nothing.
@@ -1798,7 +1810,6 @@ public final class Settings {
             MOVED_TO_SECURE.add(System.KEYBOARD_BRIGHTNESS);
             MOVED_TO_SECURE.add(System.BUTTON_BRIGHTNESS);
             MOVED_TO_SECURE.add(System.BUTTON_BACKLIGHT_TIMEOUT);
-            MOVED_TO_SECURE.add(Secure.VOLUME_LINK_NOTIFICATION);
         }
 
         private static final HashSet<String> MOVED_TO_GLOBAL;
@@ -1843,7 +1854,6 @@ public final class Settings {
             MOVED_TO_GLOBAL.add(Settings.Global.CALL_AUTO_RETRY);
             MOVED_TO_GLOBAL.add(Settings.Global.DEBUG_APP);
             MOVED_TO_GLOBAL.add(Settings.Global.WAIT_FOR_DEBUGGER);
-            MOVED_TO_GLOBAL.add(Settings.Global.SHOW_PROCESSES);
             MOVED_TO_GLOBAL.add(Settings.Global.ALWAYS_FINISH_ACTIVITIES);
             MOVED_TO_GLOBAL.add(Settings.Global.TZINFO_UPDATE_CONTENT_URL);
             MOVED_TO_GLOBAL.add(Settings.Global.TZINFO_UPDATE_METADATA_URL);
@@ -2846,7 +2856,8 @@ public final class Settings {
         /**
          * Control whether the process CPU usage meter should be shown.
          *
-         * @deprecated Use {@link Global#SHOW_PROCESSES} instead
+         * @deprecated This functionality is no longer available as of
+         * {@link android.os.Build.VERSION_CODES#N_MR1}.
          */
         @Deprecated
         public static final String SHOW_PROCESSES = Global.SHOW_PROCESSES;
@@ -3419,6 +3430,54 @@ public final class Settings {
         public static final Validator NOTIFICATION_LIGHT_PULSE_VALIDATOR = sBooleanValidator;
 
         /**
+         * Int value of the battery style 0 is default
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_STYLE = "statusbar_battery_style";
+
+        /**
+         * int value if the battery percent should be shown never/always/expanded
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_PERCENT = "statusbar_battery_percent";
+
+        /**
+         * boolean value if the battery percent should be shown inside the image
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_PERCENT_INSIDE = "statusbar_battery_percent_inside";
+
+        /**
+         * boolean value if the charging flash should be displayed
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_CHARGING_IMAGE = "statusbar_battery_charging_image";
+
+        /**
+         * int value of the color to use when charging
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_CHARGING_COLOR = "statusbar_battery_charging_color";
+        /**
+         * enable color when charging
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_CHARGING_COLOR_ENABLE = "statusbar_battery_charging_color_enable";
+
+        /**
+         * when to show battery - values are 0/none 1/always 2/expanded default is 1/always
+         *
+         * @hide
+         */
+        public static final String STATUSBAR_BATTERY_ENABLE = "statusbar_battery_enable";
+
+        /**
          * Show pointer location on screen?
          * 0 = no
          * 1 = yes
@@ -3965,6 +4024,38 @@ public final class Settings {
          */
         public static final String SCREENSHOT_DELAY = "screenshot_delay";
 
+        /**
+         * Quick Settings number of columns
+         * @hide
+         */
+        public static final String QS_LAYOUT_COLUMNS = "qs_layout_columns";
+
+	/**
+         * Number of rows used for the Quick Settings (portrait)
+         *
+         * @hide
+         */
+        public static final String QS_ROWS_PORTRAIT = "qs_rows_portrait";
+
+        /**
+         * Number of rows used for the Quick Settings (landscape)
+         *
+         * @hide
+         */
+        public static final String QS_ROWS_LANDSCAPE = "qs_rows_landscape";
+
+	/**
+         * Whether to display music track title within the music qs tile
+         * @hide
+         */
+        public static final String MUSIC_TILE_TITLE = "music_tile_title";
+
+        /**
+         * Whether to display qs tile titles in the qs panel
+         * @hide
+         */
+        public static final String QS_TILE_TITLE_VISIBILITY = "qs_tile_title_visibility";
+
 	/**
          * Define if screenshot crop & share is active
          * @hide
@@ -4025,6 +4116,50 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_TICKER_FONT_SIZE = "status_bar_ticker_font_size";
+
+        /**
+         * Show onscreen keys for hw button devices
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_SHOW = "navigation_bar_show";
+
+        /**
+         * Boolean value whether to link ringtone and notification volume
+         *
+         * @hide
+         */
+        public static final String VOLUME_LINK_NOTIFICATION = "volume_link_notification";
+
+        /**
+         * show text headers together with the stream volume images
+         * default is true
+         * @hide
+         */
+        public static final String VOLUME_DIALOG_HEADERS = "volume_dialog_headers";
+
+        /**
+         * Shows custom date before clock time
+         * 0 - No Date
+         * 1 - Small Date
+         * 2 - Normal Date
+         * @hide
+         */
+        public static final String STATUS_BAR_DATE = "status_bar_date";
+
+        /**
+         * Sets the date string style
+         * 0 - Regular style
+         * 1 - Lowercase
+         * 2 - Uppercase
+         * @hide
+         */
+        public static final String STATUS_BAR_DATE_STYLE = "status_bar_date_style";
+
+        /**
+         * Stores the java DateFormat string for the date
+         * @hide
+         */
+        public static final String STATUS_BAR_DATE_FORMAT = "status_bar_date_format";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -6596,6 +6731,8 @@ public final class Settings {
         /**
          * If nonzero, ANRs in invisible background processes bring up a dialog.
          * Otherwise, the process will be silently killed.
+         *
+         * Also prevents ANRs and crash dialogs from being suppressed.
          * @hide
          */
         public static final String ANR_SHOW_BACKGROUND = "anr_show_background";
@@ -6682,6 +6819,18 @@ public final class Settings {
          * @hide
          */
         public static final String DOZE_ENABLED = "doze_enabled";
+
+        /**
+         * Whether the device should pulse on pick up gesture.
+         * @hide
+         */
+        public static final String DOZE_PULSE_ON_PICK_UP = "doze_pulse_on_pick_up";
+
+        /**
+         * Whether the device should pulse on double tap gesture.
+         * @hide
+         */
+        public static final String DOZE_PULSE_ON_DOUBLE_TAP = "doze_pulse_on_double_tap";
 
         /**
          * The current night mode that has been selected by the user.  Owned
@@ -7038,49 +7187,16 @@ public final class Settings {
         public static final String ADVANCED_REBOOT = "advanced_reboot";
 
         /**
-         * Boolean value whether to link ringtone and notification volume
-         * @hide
-         */
-        public static final String VOLUME_LINK_NOTIFICATION = "volume_link_notification";
-
-        /**
          * Holds comma separated list of ordering of QS tiles.
          * @hide
          */
         public static final String QS_TILES = "sysui_qs_tiles";
-
-        /**
-         * Count of small QS tiles.
-         * @hide
-         */
-        public static final String QQS_COUNT = "sysui_qqs_count";
 
 	/**
          * Whether to use one tap tile action to enable or disable data 
          * @hide
          */
         public static final String QS_DATA_ADVANCED = "qs_data_advanced";
-
-        /**
-         * Number of rows used for the Quick Settings (portrait)
-         *
-         * @hide
-         */
-        public static final String QS_ROWS_PORTRAIT = "qs_rows_portrait";
-
-        /**
-         * Number of rows used for the Quick Settings (landscape)
-         *
-         * @hide
-         */
-        public static final String QS_ROWS_LANDSCAPE = "qs_rows_landscape";
-
-        /**
-         * Number of columns used for the Quick Settings
-         *
-         * @hide
-         */
-        public static final String QS_COLUMNS = "qs_columns";
 
         /**
          * Whether or not the automatic storage manager is enabled and should run on the device.
@@ -7136,6 +7252,13 @@ public final class Settings {
          */
         public static final String DEMO_USER_SETUP_COMPLETE
                 = "demo_user_setup_complete";
+
+        /**
+         * Specifies whether the web action API is enabled.
+         *
+         * @hide
+         */
+        public static final String WEB_ACTION_ENABLED = "web_action_enabled";
 
         /**
          * This are the settings to be backed up.
@@ -7220,6 +7343,9 @@ public final class Settings {
             CAMERA_DOUBLE_TAP_POWER_GESTURE_DISABLED,
             SYSTEM_NAVIGATION_KEYS_ENABLED,
             QS_TILES,
+            DOZE_ENABLED,
+            DOZE_PULSE_ON_PICK_UP,
+            DOZE_PULSE_ON_DOUBLE_TAP
         };
 
         /**
@@ -8771,10 +8897,35 @@ public final class Settings {
         /**
          * The server used for captive portal detection upon a new conection. A
          * 204 response code from the server is used for validation.
+         * TODO: remove this deprecated symbol.
          *
          * @hide
          */
         public static final String CAPTIVE_PORTAL_SERVER = "captive_portal_server";
+
+        /**
+         * The URL used for HTTPS captive portal detection upon a new connection.
+         * A 204 response code from the server is used for validation.
+         *
+         * @hide
+         */
+        public static final String CAPTIVE_PORTAL_HTTPS_URL = "captive_portal_https_url";
+
+        /**
+         * The URL used for HTTP captive portal detection upon a new connection.
+         * A 204 response code from the server is used for validation.
+         *
+         * @hide
+         */
+        public static final String CAPTIVE_PORTAL_HTTP_URL = "captive_portal_http_url";
+
+        /**
+         * The URL used for fallback HTTP captive portal detection when previous HTTP
+         * and HTTPS captive portal detection attemps did not return a conclusive answer.
+         *
+         * @hide
+         */
+        public static final String CAPTIVE_PORTAL_FALLBACK_URL = "captive_portal_fallback_url";
 
         /**
          * Whether to use HTTPS for network validation. This is enabled by default and the setting
@@ -8784,6 +8935,14 @@ public final class Settings {
          * @hide
          */
         public static final String CAPTIVE_PORTAL_USE_HTTPS = "captive_portal_use_https";
+
+        /**
+         * Which User-Agent string to use in the header of the captive portal detection probes.
+         * The User-Agent field is unset when this setting has no value (HttpUrlConnection default).
+         *
+         * @hide
+         */
+        public static final String CAPTIVE_PORTAL_USER_AGENT = "captive_portal_user_agent";
 
         /**
          * Whether network service discovery is enabled.
@@ -9158,6 +9317,13 @@ public final class Settings {
         public static final String CALL_AUTO_RETRY = "call_auto_retry";
 
         /**
+         * A setting that can be read whether the emergency affordance is currently needed.
+         * The value is a boolean (1 or 0).
+         * @hide
+         */
+        public static final String EMERGENCY_AFFORDANCE_NEEDED = "emergency_affordance_needed";
+
+        /**
          * See RIL_PreferredNetworkType in ril.h
          * @hide
          */
@@ -9177,7 +9343,11 @@ public final class Settings {
 
         /**
          * Control whether the process CPU usage meter should be shown.
+         *
+         * @deprecated This functionality is no longer available as of
+         * {@link android.os.Build.VERSION_CODES#N_MR1}.
          */
+        @Deprecated
         public static final String SHOW_PROCESSES = "show_processes";
 
         /**
@@ -9498,13 +9668,22 @@ public final class Settings {
         public static final String WFC_IMS_ENABLED = "wfc_ims_enabled";
 
         /**
-         * WFC Mode.
+         * WFC mode on home/non-roaming network.
          * <p>
          * Type: int - 2=Wi-Fi preferred, 1=Cellular preferred, 0=Wi-Fi only
          *
          * @hide
          */
         public static final String WFC_IMS_MODE = "wfc_ims_mode";
+
+        /**
+         * WFC mode on roaming network.
+         * <p>
+         * Type: int - see {@link WFC_IMS_MODE} for values
+         *
+         * @hide
+         */
+        public static final String WFC_IMS_ROAMING_MODE = "wfc_ims_roaming_mode";
 
         /**
          * Whether WFC roaming is enabled
@@ -9532,6 +9711,16 @@ public final class Settings {
          */
         public static final String EPHEMERAL_COOKIE_MAX_SIZE_BYTES =
                 "ephemeral_cookie_max_size_bytes";
+
+        /**
+         * Toggle to enable/disable the entire ephemeral feature. By default, ephemeral is
+         * enabled. Set to zero to disable.
+         * <p>
+         * Type: int (0 for false, 1 for true)
+         *
+         * @hide
+         */
+        public static final String ENABLE_EPHEMERAL_FEATURE = "enable_ephemeral_feature";
 
         /**
          * A mask applied to the ephemeral hash to generate the hash prefix.
@@ -9610,6 +9799,16 @@ public final class Settings {
          * @hide
          */
         public static final String RETAIL_DEMO_MODE_CONSTANTS = "retail_demo_mode_constants";
+
+        /**
+         * The reason for the settings database being downgraded. This is only for
+         * troubleshooting purposes and its value should not be interpreted in any way.
+         *
+         * Type: string
+         *
+         * @hide
+         */
+        public static final String DATABASE_DOWNGRADE_REASON = "database_downgrade_reason";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

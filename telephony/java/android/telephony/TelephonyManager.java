@@ -1178,7 +1178,7 @@ public class TelephonyManager {
     private int getPhoneTypeFromProperty(int phoneId) {
         String type = getTelephonyProperty(phoneId,
                 TelephonyProperties.CURRENT_ACTIVE_PHONE, null);
-        if (type == null || type.equals("")) {
+        if (type == null || type.isEmpty()) {
             return getPhoneTypeFromNetworkType(phoneId);
         }
         return Integer.parseInt(type);
@@ -1194,7 +1194,7 @@ public class TelephonyManager {
         // use the system property for default network type.
         // This is a fail safe, and can only happen at first boot.
         String mode = getTelephonyProperty(phoneId, "ro.telephony.default_network", null);
-        if (mode != null) {
+        if (mode != null && !mode.isEmpty()) {
             return TelephonyManager.getPhoneType(Integer.parseInt(mode));
         }
         return TelephonyManager.PHONE_TYPE_NONE;
@@ -1684,6 +1684,12 @@ public class TelephonyManager {
         }
     }
 
+    /**
+     * Network Class Definitions.
+     * Do not change this order, it is used for sorting during emergency calling in
+     * {@link TelephonyConnectionService#getFirstPhoneForEmergencyCall()}. Any newer technologies
+     * should be added after the current definitions.
+     */
     /** Unknown network class. {@hide} */
     public static final int NETWORK_CLASS_UNKNOWN = 0;
     /** Class of broadly defined "2G" networks. {@hide} */

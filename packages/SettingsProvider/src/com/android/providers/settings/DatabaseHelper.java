@@ -52,6 +52,8 @@ import com.android.internal.util.XmlUtils;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.LockPatternView;
 
+import cyanogenmod.providers.CMSettings;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -739,6 +741,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                    Secure.LOCK_PATTERN_SIZE,
                    Secure.LOCK_DOTS_VISIBLE,
                    Secure.LOCK_SHOW_ERROR_PATH,
+                   CMSettings.Secure.LOCK_PASS_TO_SECURITY_VIEW,
                    "lockscreen.password_type",
                    "lockscreen.lockoutattemptdeadline",
                    "lockscreen.patterneverchosen",
@@ -1494,7 +1497,6 @@ class DatabaseHelper extends SQLiteOpenHelper {
                             Settings.Global.CALL_AUTO_RETRY,
                             Settings.Global.DEBUG_APP,
                             Settings.Global.WAIT_FOR_DEBUGGER,
-                            Settings.Global.SHOW_PROCESSES,
                             Settings.Global.ALWAYS_FINISH_ACTIVITIES,
                     };
                     String[] secureToGlobal = {

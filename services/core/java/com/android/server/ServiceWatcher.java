@@ -92,8 +92,7 @@ public class ServiceWatcher implements ServiceConnection {
             String pkg = initialPackageNames.get(i);
             try {
                 HashSet<Signature> set = new HashSet<Signature>();
-                Signature[] sigs = pm.getPackageInfo(pkg, PackageManager.MATCH_SYSTEM_ONLY
-                        | PackageManager.GET_SIGNATURES).signatures;
+                Signature[] sigs = pm.getPackageInfo(pkg, PackageManager.GET_SIGNATURES).signatures;
                 set.addAll(Arrays.asList(sigs));
                 sigSets.add(set);
             } catch (NameNotFoundException e) {
@@ -141,8 +140,12 @@ public class ServiceWatcher implements ServiceConnection {
      * <p>
      * Note that if there are no matching encryption-aware services, we may not
      * bind to a real service until after the current user is unlocked.
+     *
+     * @returns {@code true} if a potential service implementation was found.
      */
     public boolean start() {
+        if (isServiceMissing()) return false;
+
         synchronized (mLock) {
             bindBestPackageLocked(mServicePackageName, false);
         }
@@ -174,6 +177,17 @@ public class ServiceWatcher implements ServiceConnection {
     }
 
     /**
+     * Check if any instance of this service is present on the device,
+     * regardless of it being encryption-aware or not.
+     */
+    private boolean isServiceMissing() {
+        final Intent intent = new Intent(mAction);
+        final int flags = PackageManager.MATCH_DIRECT_BOOT_AWARE
+                | PackageManager.MATCH_DIRECT_BOOT_UNAWARE;
+        return mPm.queryIntentServicesAsUser(intent, flags, mCurrentUserId).isEmpty();
+    }
+
+    /**
      * Searches and binds to the best package, or do nothing if the best package
      * is already bound, unless force rebinding is requested.
      *
@@ -181,7 +195,7 @@ public class ServiceWatcher implements ServiceConnection {
      *            packages if it is {@code null}.
      * @param forceRebind Force a rebinding to the best package if it's already
      *            bound.
-     * @return {@code true} if a valid package was found to bind to.
+     * @returns {@code true} if a valid package was found to bind to.
      */
     private boolean bindBestPackageLocked(String justCheckThisPackage, boolean forceRebind) {
         Intent intent = new Intent(mAction);

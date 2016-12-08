@@ -10205,8 +10205,6 @@ public class BatteryStatsImpl extends BatteryStats {
         writeSyncLocked();
         mShuttingDown = true;
     }
-
-    Parcel mPendingWrite = null;
     final ReentrantLock mWriteLock = new ReentrantLock();
 
     public void writeAsyncLocked() {
@@ -10227,37 +10225,27 @@ public class BatteryStatsImpl extends BatteryStats {
             return;
         }
 
-        Parcel out = Parcel.obtain();
+        final Parcel out = Parcel.obtain();
         writeSummaryToParcel(out, true);
         mLastWriteTime = mClocks.elapsedRealtime();
 
-        if (mPendingWrite != null) {
-            mPendingWrite.recycle();
-        }
-        mPendingWrite = out;
-
         if (sync) {
-            commitPendingDataToDisk();
+            commitPendingDataToDisk(out);
         } else {
             BackgroundThread.getHandler().post(new Runnable() {
                 @Override public void run() {
-                    commitPendingDataToDisk();
+                    commitPendingDataToDisk(out);
                 }
             });
         }
     }
 
-    public void commitPendingDataToDisk() {
-        final Parcel next;
-        synchronized (this) {
-            next = mPendingWrite;
-            mPendingWrite = null;
-            if (next == null) {
-                return;
-            }
-
-            mWriteLock.lock();
+    public void commitPendingDataToDisk(Parcel next) {
+        if (next == null) {
+            return;
         }
+
+        mWriteLock.lock();
 
         try {
             FileOutputStream stream = new FileOutputStream(mFile.chooseForWrite());
@@ -10727,7 +10715,7 @@ public class BatteryStatsImpl extends BatteryStats {
             }
 
             int NW = in.readInt();
-            if (NW > 100) {
+            if (NW > (MAX_WAKELOCKS_PER_UID+1)) {
                 throw new ParcelFormatException("File corrupt: too many wake locks " + NW);
             }
             for (int iw = 0; iw < NW; iw++) {
@@ -10736,7 +10724,7 @@ public class BatteryStatsImpl extends BatteryStats {
             }
 
             int NS = in.readInt();
-            if (NS > 100) {
+            if (NS > (MAX_WAKELOCKS_PER_UID+1)) {
                 throw new ParcelFormatException("File corrupt: too many syncs " + NS);
             }
             for (int is = 0; is < NS; is++) {
@@ -10745,7 +10733,7 @@ public class BatteryStatsImpl extends BatteryStats {
             }
 
             int NJ = in.readInt();
-            if (NJ > 100) {
+            if (NJ > (MAX_WAKELOCKS_PER_UID+1)) {
                 throw new ParcelFormatException("File corrupt: too many job timers " + NJ);
             }
             for (int ij = 0; ij < NJ; ij++) {
