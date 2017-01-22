@@ -80,6 +80,11 @@ class FileDescriptorInfo {
       return NULL;
     }
 
+    if (f_stat.st_nlink <= 0) {
+      ALOGE("The fd %d corresponding file has been deleted", fd);
+      return NULL;
+    }
+
     if (S_ISSOCK(f_stat.st_mode)) {
       std::string socket_name;
       if (!GetSocketName(fd, &socket_name)) {
@@ -162,11 +167,14 @@ class FileDescriptorInfo {
   // refers to the same description.
   bool Restat() const {
     struct stat f_stat;
+
     if (TEMP_FAILURE_RETRY(fstat(fd, &f_stat)) == -1) {
+      ALOGE("Failed stat fd %d, file path %s", fd, file_path.c_str());
       return false;
     }
 
-    return f_stat.st_ino == stat.st_ino && f_stat.st_dev == stat.st_dev;
+    return (f_stat.st_ino == file_stat.st_ino) && (f_stat.st_dev == file_stat.st_dev) &&
+           (f_stat.st_nlink > 0);
   }
 
   bool ReopenOrDetach() const {
@@ -214,7 +222,7 @@ class FileDescriptorInfo {
   }
 
   const int fd;
-  const struct stat stat;
+  const struct stat file_stat;
   const std::string file_path;
   const int open_flags;
   const int fd_flags;
@@ -225,7 +233,7 @@ class FileDescriptorInfo {
  private:
   FileDescriptorInfo(int fd) :
     fd(fd),
-    stat(),
+    file_stat(),
     open_flags(0),
     fd_flags(0),
     fs_flags(0),
@@ -233,10 +241,10 @@ class FileDescriptorInfo {
     is_sock(true) {
   }
 
-  FileDescriptorInfo(struct stat stat, const std::string& file_path, int fd, int open_flags,
+  FileDescriptorInfo(struct stat file_stat, const std::string& file_path, int fd, int open_flags,
                      int fd_flags, int fs_flags, off_t offset) :
     fd(fd),
-    stat(stat),
+    file_stat(file_stat),
     file_path(file_path),
     open_flags(open_flags),
     fd_flags(fd_flags),
@@ -245,9 +253,22 @@ class FileDescriptorInfo {
     is_sock(false) {
   }
 
+  static bool StartsWith(const std::string& str, const std::string& prefix) {
+    return str.compare(0, prefix.size(), prefix) == 0;
+  }
+
+  static bool EndsWith(const std::string& str, const std::string& suffix) {
+    if (suffix.size() > str.size()) {
+      return false;
+    }
+
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+  }
+
   // Returns true iff. a given path is whitelisted. A path is whitelisted
   // if it belongs to the whitelist (see kPathWhitelist) or if it's a path
-  // under /system/framework that ends with ".jar".
+  // under /system/framework that ends with ".jar" or if it is a system
+  // framework overlay.
   static bool IsWhitelisted(const std::string& path) {
     for (size_t i = 0; i < (sizeof(kPathWhitelist) / sizeof(kPathWhitelist[0])); ++i) {
       if (kPathWhitelist[i] == path) {
@@ -257,30 +278,41 @@ class FileDescriptorInfo {
 
     static const std::string kFrameworksPrefix = "/system/framework/";
     static const std::string kJarSuffix = ".jar";
-    if (path.compare(0, kFrameworksPrefix.size(), kFrameworksPrefix) == 0 &&
-        path.compare(path.size() - kJarSuffix.size(), kJarSuffix.size(), kJarSuffix) == 0) {
+    if (StartsWith(path, kFrameworksPrefix) && EndsWith(path, kJarSuffix)) {
       return true;
     }
 
-    static const std::string kResourceCachePrefix = "/data/resource-cache/";
-    static const std::string kIdmapSuffix = "idmap";
-    if (path.compare(0, kResourceCachePrefix.size(), kResourceCachePrefix) == 0 &&
-        path.compare(path.size() - kIdmapSuffix.size(), kIdmapSuffix.size(), kIdmapSuffix) == 0) {
-        return true;
-    }
-
-    static const std::string kSystemVendorOverlayPrefix = "/system/vendor/overlay/";
+    // Whitelist files needed for Runtime Resource Overlay, like these:
+    // /system/vendor/overlay/framework-res.apk
+    // /system/vendor/overlay-subdir/pg/framework-res.apk
+    // /data/resource-cache/system@vendor@overlay@framework-res.apk@idmap
+    // /data/resource-cache/system@vendor@overlay-subdir@pg@framework-res.apk@idmap
+    // See AssetManager.cpp for more details on overlay-subdir.
+    static const std::string kOverlayDir = "/system/vendor/overlay/";
+    static const std::string kVendorOverlayDir = "/vendor/overlay";
+    static const std::string kOverlaySubdir = "/system/vendor/overlay-subdir/";
     static const std::string kApkSuffix = ".apk";
-    if (path.compare(0, kSystemVendorOverlayPrefix.size(), kSystemVendorOverlayPrefix) == 0 &&
-        path.compare(path.size() - kApkSuffix.size(), kApkSuffix.size(), kApkSuffix) == 0) {
-        return true;
+
+    if ((StartsWith(path, kOverlayDir) || StartsWith(path, kOverlaySubdir)
+         || StartsWith(path, kVendorOverlayDir))
+        && EndsWith(path, kApkSuffix)
+        && path.find("/../") == std::string::npos) {
+      return true;
     }
 
-    static const std::string kVendorOverlayPrefix = "/vendor/overlay/";
-    if (path.compare(0, kVendorOverlayPrefix.size(), kVendorOverlayPrefix) == 0 &&
-        path.compare(path.size() - kApkSuffix.size(), kApkSuffix.size(), kApkSuffix) == 0) {
-        return true;
+    static const std::string kOverlayIdmapPrefix = "/data/resource-cache/";
+    static const std::string kOverlayIdmapSuffix = ".apk@idmap";
+    if (StartsWith(path, kOverlayIdmapPrefix) && EndsWith(path, kOverlayIdmapSuffix)
+        && path.find("/../") == std::string::npos) {
+      return true;
     }
+
+    // All regular files that are placed under this path are whitelisted automatically.
+    static const std::string kZygoteWhitelistPath = "/vendor/zygote_whitelist/";
+    if (StartsWith(path, kZygoteWhitelistPath) && path.find("/../") == std::string::npos) {
+      return true;
+    }
+
     return false;
   }
 
@@ -382,7 +414,7 @@ class FileDescriptorTable {
   // Creates a new FileDescriptorTable. This function scans
   // /proc/self/fd for the list of open file descriptors and collects
   // information about them. Returns NULL if an error occurs.
-  static FileDescriptorTable* Create() {
+  static FileDescriptorTable* Create(bool permissive = false) {
     DIR* d = opendir(kFdPath);
     if (d == NULL) {
       ALOGE("Unable to open directory %s: %s", kFdPath, strerror(errno));
@@ -400,12 +432,15 @@ class FileDescriptorTable {
 
       FileDescriptorInfo* info = FileDescriptorInfo::createFromFd(fd);
       if (info == NULL) {
-        if (closedir(d) == -1) {
-          ALOGE("Unable to close directory : %s", strerror(errno));
+        if (!permissive) {
+          if (closedir(d) == -1) {
+            ALOGE("Unable to close directory : %s", strerror(errno));
+          }
+          return NULL;
         }
-        return NULL;
+      } else {
+        open_fd_map[fd] = info;
       }
-      open_fd_map[fd] = info;
     }
 
     if (closedir(d) == -1) {

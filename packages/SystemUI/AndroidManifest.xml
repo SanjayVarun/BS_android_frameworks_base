@@ -186,6 +186,9 @@
     <!-- shortcut manager -->
     <uses-permission android:name="android.permission.RESET_SHORTCUT_MANAGER_THROTTLING" />
 
+    <!-- Locale QS -->
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+
     <application
         android:name=".SystemUIApplication"
         android:persistent="true"
@@ -291,7 +294,7 @@
                   android:excludeFromRecents="true"
                   android:stateNotNeeded="true"
                   android:resumeWhilePausing="true"
-                  android:screenOrientation="behind"
+                  android:screenOrientation="fullUser"
                   android:resizeableActivity="true"
                   android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
                   android:theme="@style/RecentsTheme.Wallpaper">
@@ -534,6 +537,27 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SHOW_NOTIFICATION_BRIGHTNESS_DIALOG" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".DaylightHeaderDefault"
+                  android:label="Default" >
+            <intent-filter>
+                <action android:name="org.omnirom.DaylightHeaderPack" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- App picker activity -->
+        <activity
+            android:name=".aicp.apppicker.AppPickerActivity"
+            android:theme="@style/AppPicker"
+            android:label="@string/quick_settings_app_picker"
+            android:icon="@drawable/ic_qs_app_picker"
+            android:enabled="true" >
+            <intent-filter>
+                <action android:name=".aicp.apppicker.AppPickerActivity" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

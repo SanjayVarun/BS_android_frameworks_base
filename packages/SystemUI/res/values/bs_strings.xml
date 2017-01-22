@@ -64,6 +64,22 @@
     <string name="accessibility_quick_settings_heads_up_changed_on">Heads up turned on</string>
     <string name="quick_settings_screenrecord">Screenrecord</string>
     <string name="quick_settings_screenrecord_on">Recording ...</string>
+    <string name="quick_settings_pulse_enabled">Pulse Enabled</string>
+    <string name="quick_settings_pulse_disabled">No Visualizer</string>
+    <string name="quick_settings_pulse_label">Pulse</string>
+    <string name="accessibility_quick_settings_pulse_off">Pulse off</string>
+    <string name="accessibility_quick_settings_pulse_on">Pulse on</string>
+    <string name="accessibility_quick_settings_pulse_changed_off">Pulse turned off</string>
+    <string name="accessibility_quick_settings_pulse_changed_on">Pulse turned on</string>
+    <string name="quick_settings_locale_label">Language</string>
+    <string name="quick_settings_locale_more_locales_toast">Please configure multiple languages to enable toggle functionality</string>
+    <string name="quick_settings_sound_label">Sound</string>
+    <string name="quick_settings_sound_ring">Ring</string>
+    <string name="quick_settings_sound_vibrate">Vibrate</string>
+    <string name="quick_settings_sound_silent">Silent</string>
+    <string name="quick_settings_doze_notifications_label">Doze notifications</string>
+    <string name="quick_settings_doze_notifications_user">Doze notifications</string>
+    <string name="quick_settings_doze_notifications_off">No doze notifications</string>
 
     <!-- Screenshot Crop & Share -->
     <string name="action_delete_success">Deleted</string>
@@ -84,4 +100,7 @@
     <string name="action_save_success">Saved</string>
     <string name="action_save_fault">Saving was unsuccessful</string>
     <string name="action_edit">Edit</string>
+
+    <!-- Application picker Tile -->
+    <string name="quick_settings_app_picker">Application picker</string>
 </resources>

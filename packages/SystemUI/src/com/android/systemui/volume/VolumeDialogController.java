@@ -124,7 +124,7 @@ public class VolumeDialogController {
         mObserver = new SettingObserver(mWorker);
         mObserver.init();
         mReceiver.init();
-        mStreamTitles = mContext.getResources().getStringArray(R.array.volume_stream_titles);
+        mStreamTitles = mContext.getResources().getStringArray(R.array.volume_stream_titles_lineage);
         mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mHasVibrator = mVibrator != null && mVibrator.hasVibrator();
     }
@@ -366,6 +366,7 @@ public class VolumeDialogController {
         updateRingerModeExternalW(mAudio.getRingerMode());
         updateZenModeW();
         updateEffectsSuppressorW(mNoMan.getEffectsSuppressor());
+        updateLinkNotificationConfigW();
         mCallbacks.onStateChanged(mState);
     }
 
