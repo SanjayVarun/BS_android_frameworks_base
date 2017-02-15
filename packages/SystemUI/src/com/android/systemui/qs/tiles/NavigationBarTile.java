@@ -133,11 +133,9 @@ public class NavigationBarTile extends QSTile<QSTile.State> {
 
     @Override
     protected void handleClick() {
-        if (mEntries.length > 0) {
-            mShowingDetail = true;
-            mAnimationList.clear();
-            showDetail(true);
-        }
+        MetricsLogger.action(mContext, getMetricsCategory());
+        Settings.Secure.putInt(mContext.getContentResolver(),
+                Settings.Secure.NAVIGATION_BAR_VISIBLE, navbarEnabled() ? 0 : 1);
     }
 
     @Override
@@ -149,13 +147,10 @@ public class NavigationBarTile extends QSTile<QSTile.State> {
 
     @Override
     protected void handleLongClick() {
-        if (navbarEnabled()) {
-            Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.setClassName(SETTINGS_PACKAGE_NAME, getNavigationBar() == 0 ? SMARTBAR_SETTINGS
-                    : FLING_SETTINGS);
-            mHost.startActivityDismissingKeyguard(intent);
-        } else {
-            // Do nothing
+        if (mEntries.length > 0) {
+            mShowingDetail = true;
+            mAnimationList.clear();
+            showDetail(true);
         }
     }
 
@@ -178,10 +173,10 @@ public class NavigationBarTile extends QSTile<QSTile.State> {
         } else {
             if (navMode == 0) {
                 state.icon = ResourceIcon.get(R.drawable.ic_qs_smartbar_off);
-                state.label = mContext.getString(R.string.quick_settings_smartbar_off);
+                state.label = mContext.getString(R.string.quick_settings_smartbar);
             } else if (navMode == 1){
                 state.icon = ResourceIcon.get(R.drawable.ic_qs_fling_off);
-                state.label = mContext.getString(R.string.quick_settings_fling_off);
+                state.label = mContext.getString(R.string.quick_settings_fling);
             }
         }
     }
@@ -229,7 +224,7 @@ public class NavigationBarTile extends QSTile<QSTile.State> {
         @Override
         public int getMetricsCategory() {
             return MetricsEvent.QUICK_SETTINGS;
-        }   
+        }
 
         @Override
         public CharSequence getTitle() {

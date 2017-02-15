@@ -619,6 +619,8 @@
   <!-- Recents: MultiStack add stack split custom radio button. [CHAR LIMIT=NONE] -->
   <string name="recents_multistack_add_stack_dialog_split_custom">División personalizada</string>
   <!-- Fully qualified activity class names to be blacklisted in Recents, add package names into overlay as needed -->
+  <string-array name="recents_blacklist_array">
+    </string-array>
   <!-- Expanded Status Bar Header: Battery Charged [CHAR LIMIT=40] -->
   <string name="expanded_header_battery_charged">Cargada</string>
   <!-- Expanded Status Bar Header: Charging, no known time [CHAR LIMIT=40] -->
@@ -834,15 +836,15 @@
     <!-- STREAM_MUSIC -->
     <item>Alarma</item>
     <!-- STREAM_ALARM -->
-    <item/>
+    <item></item>
     <!-- STREAM_NOTIFICATION -->
     <item>Bluetooth</item>
     <!-- STREAM_BLUETOOTH_SCO -->
-    <item/>
+    <item></item>
     <!-- STREAM_SYSTEM_ENFORCED -->
-    <item/>
+    <item></item>
     <!-- STREAM_DTMF -->
-    <item/>
+    <item></item>
     <!-- STREAM_TTS -->
   </string-array>
   <!-- Name of special SystemUI debug settings -->

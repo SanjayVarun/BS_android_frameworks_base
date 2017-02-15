@@ -351,6 +351,8 @@
   <!-- Recents: MultiStack add stack split vertical radio button. [CHAR LIMIT=NONE] -->
   <!-- Recents: MultiStack add stack split custom radio button. [CHAR LIMIT=NONE] -->
   <!-- Fully qualified activity class names to be blacklisted in Recents, add package names into overlay as needed -->
+  <string-array name="recents_blacklist_array">
+    </string-array>
   <!-- Expanded Status Bar Header: Battery Charged [CHAR LIMIT=40] -->
   <!-- Expanded Status Bar Header: Charging, no known time [CHAR LIMIT=40] -->
   <!-- Expanded Status Bar Header: Charging, showing time left until charged [CHAR LIMIT=40] -->

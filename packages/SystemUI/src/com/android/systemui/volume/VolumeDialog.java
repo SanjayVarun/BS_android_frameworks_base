@@ -249,8 +249,13 @@ public class VolumeDialog implements TunerService.Tunable {
                 });
 
         if (mRows.isEmpty()) {
-            addRow(AudioManager.STREAM_RING,
-                    R.drawable.ic_volume_ringer, R.drawable.ic_volume_ringer_mute, true);
+            if (Util.isVoiceCapable(mContext)) {
+                addRow(AudioManager.STREAM_RING,
+                        R.drawable.ic_volume_ringer, R.drawable.ic_volume_ringer_mute, true);
+            } else {
+                addRow(AudioManager.STREAM_RING, R.drawable.ic_volume_notification,
+                        R.drawable.ic_volume_notification_mute, true);
+            }
             addRow(AudioManager.STREAM_MUSIC,
                     R.drawable.ic_volume_media, R.drawable.ic_volume_media_mute, true);
             addRow(AudioManager.STREAM_ALARM,
@@ -698,7 +703,9 @@ public class VolumeDialog implements TunerService.Tunable {
             }
         }
 
-        updateNotificationRowH();
+        if (Util.isVoiceCapable(mContext)) {
+            updateNotificationRowH();
+        }
 
         if (mActiveStream != state.activeStream) {
             mActiveStream = state.activeStream;
@@ -860,8 +867,7 @@ public class VolumeDialog implements TunerService.Tunable {
     }
 
     private void updateVolumeRowHeaderVisibleH(VolumeRow row) {
-        final boolean dynamic = row.ss != null && row.ss.dynamic;
-        final boolean showHeaders = mExpanded && (mShowHeaders || dynamic);
+        final boolean showHeaders = mExpanded && mShowHeaders;
         if (row.cachedShowHeaders != showHeaders) {
             row.cachedShowHeaders = showHeaders;
             Util.setVisOrGone(row.header, showHeaders);
