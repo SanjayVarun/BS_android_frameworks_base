@@ -4391,6 +4391,19 @@ public final class Settings {
         public static final String STATUS_BAR_CUSTOM_HEADER_IMAGE = "status_bar_custom_header_image";
 
         /**
+         * @hide
+         */
+        public static final String OMNIJAWS_WEATHER_ICON_PACK = "omnijaws_weather_icon_pack";
+
+	/**
+         * Whether to show the kill app button in notification guts
+         *
+         * @hide
+         */
+        public static final String NOTIFICATION_GUTS_KILL_APP_BUTTON =
+                "notification_guts_kill_app_button";
+
+        /**
          * Enable/disable overwrite default value for ambient display
          * @hide
          */
@@ -4528,6 +4541,12 @@ public final class Settings {
          */
         public static final String RECENT_CARD_TEXT_COLOR = "recent_card_text_color";
 
+	    /**
+         * show the membar in slim recents
+         *  @hide
+         */
+        public static final String SLIM_RECENTS_MEM_DISPLAY = "slim_recents_mem_display";
+
         /**
          * @hide
          */
@@ -4538,6 +4557,25 @@ public final class Settings {
          * @hide
          */
         public static final String FP_UNLOCK_KEYSTORE = "fp_unlock_keystore";
+
+        /**
+         * Whether the proximity sensor will adjust call to speaker
+         * @hide
+         */
+        public static final String PROXIMITY_AUTO_SPEAKER = "proximity_auto_speaker";
+
+        /**
+         * Time delay to activate speaker after proximity sensor triggered
+         * @hide
+         */
+        public static final String PROXIMITY_AUTO_SPEAKER_DELAY = "proximity_auto_speaker_delay";
+
+        /**
+         * Whether the proximity sensor will adjust call to speaker,
+         * only while in call (not while ringing on outgoing call)
+         * @hide
+         */
+        public static final String PROXIMITY_AUTO_SPEAKER_INCALL_ONLY = "proximity_auto_speaker_incall_only";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -6170,6 +6208,11 @@ public final class Settings {
         public static final String LOCK_SHOW_ERROR_PATH = "lock_pattern_show_error_path";
 
         /**
+         * @hide
+         */
+        public static final String LOCK_HIDE_STATUS_BAR = "lockscreen_hide_status_bar";
+
+        /**
          * This preference allows the device to be locked given time after screen goes off,
          * subject to current DeviceAdmin policy limits.
          * @hide
@@ -7696,6 +7739,12 @@ public final class Settings {
          * @hide
          */
         public static final String ONE_HANDED_MODE_UI = "one_handed_mode_ui";
+
+        /**
+         * Hide lockscreen bottom shortcuts
+         * @hide
+         */
+        public static final String HIDE_LOCKSCREEN_SHORTCUTS = "hide_lockscreen_shortcuts";
 
         /**
          * This are the settings to be backed up.
