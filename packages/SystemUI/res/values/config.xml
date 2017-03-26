@@ -90,7 +90,7 @@
     <bool name="quick_settings_wide">false</bool>
 
     <!-- The number of columns in the QuickSettings -->
-    <integer name="quick_settings_num_columns">3</integer>
+    <integer name="quick_settings_num_columns">5</integer>
 
     <!-- The number of rows in the QuickSettings -->
     <integer name="quick_settings_num_rows">1</integer>
@@ -100,12 +100,12 @@
 
     <!-- The default tiles to display in QuickSettings -->
     <string name="quick_settings_tiles_default" translatable="false">
-        wifi,cell,battery,dnd,flashlight,rotation,bt,airplane
+        wifi,cell,battery,dnd,flashlight,weather,bt,airplane
     </string>
 
     <!-- The default tiles to display in QuickSettings -->
     <string name="quick_settings_tiles_stock" translatable="false">
-        wifi,cell,battery,dnd,flashlight,rotation,bt,airplane,location,hotspot,inversion,saver,work,cast,night,screenshot,adb_network,sync,reboot,usb_tether,music,ime,caffeine,navigation_bar,heads_up,screenrecord,pulse,locale,sound,app_picker,ambient,assist,voiceassist,weather
+ wifi,cell,battery,dnd,flashlight,rotation,bt,airplane,location,hotspot,inversion,saver,work,cast,night,screenshot,adb_network,sync,reboot,usb_tether,music,ime,caffeine,navigation_bar,heads_up,screenrecord,pulse,locale,sound,app_picker,ambient,assist,voiceassist,weather,magiskmanager,compass
     </string>
 
     <!-- The tiles to display in QuickSettings -->
@@ -283,7 +283,4 @@
 
     <bool name="config_show4gForIWlan">false</bool>
     <bool name="config_showSignalForIWlan">false</bool>
-
-    <!-- Allow the flashlight service to use wakelocks -->
-    <bool name="config_useWakelockForFlashlight">false</bool>
 </resources>

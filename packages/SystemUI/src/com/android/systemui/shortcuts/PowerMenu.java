@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
- * Copyright (C) 2014-2016 SlimRoms Project
+ * Copyright 2013 SlimRom
+ * Copyright 2015 AICP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,25 @@
  * limitations under the License.
  */
 
-package com.android.systemui.slimrecent;
+package com.android.systemui.shortcuts;
 
-import android.graphics.drawable.ColorDrawable;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 
-public class ColorDrawableWithDimensions extends ColorDrawable {
-    private int mWidth;
-    private int mHeight;
+public class PowerMenu extends Activity  {
 
-    public ColorDrawableWithDimensions(int color, int width, int height) {
-        super(color);
-        mWidth = width;
-        mHeight = height;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     @Override
-    public int getIntrinsicWidth() {
-        return mWidth;
-    }
-
-    @Override
-    public int getIntrinsicHeight() {
-        return mHeight;
+    public void onResume() {
+        super.onResume();
+        Intent intent = new Intent(Intent.ACTION_POWERMENU);
+        sendBroadcast(intent);
+        this.finish();
     }
 }
