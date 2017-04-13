@@ -28,15 +28,17 @@ import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
-import android.content.res.Configuration;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Color;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.graphics.PixelFormat;
@@ -106,6 +108,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     public static float DEFAULT_SCALE_FACTOR = 1.0f;
 
+    private Configuration mConfiguration;
     private Context mContext;
     private WindowManager mWindowManager;
     private IWindowManager mWindowManagerService;
@@ -138,6 +141,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
     ProgressBar mMemBar;
     boolean enableMemDisplay;
     private ActivityManager mAm;
+    private int mMembarcolor;
+    private int mMemtextcolor;
 
     private boolean mMemBarLongClickToClear;
 
@@ -190,6 +195,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         mContext.registerReceiver(mBroadcastReceiver, filter);
+        mConfiguration = new Configuration();
+        mConfiguration.updateFrom(context.getResources().getConfiguration());
 
         mParentView = new FrameLayout(mContext);
 
@@ -279,8 +286,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         });
 
         // Settings observer
-        SettingsObserver observer = new SettingsObserver(mHandler);
-        observer.observe();
+        new SettingsObserver(mHandler).observe();
+        new KeepOpenSettingsObserver(mHandler).observe();
     }
 
     /**
@@ -781,12 +788,27 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_CARD_BG_COLOR),
                     false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_RECENTS_ICON_PACK),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.LOCK_TO_APP_ENABLED),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENTS_MAX_APPS),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_MEM_BAR_COLOR),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_MEM_TEXT_COLOR),
+                    false, this, UserHandle.USER_ALL);
             update();
         }
 
         @Override
         protected void update() {
-            // Close recent panel if it is opened.
+            // Close recent panel if it is opened
             hideRecents(false);
 
             ContentResolver resolver = mContext.getContentResolver();
@@ -813,6 +835,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             if (scaleFactor != mScaleFactor) {
                 mScaleFactor = scaleFactor;
                 rebuildRecentsScreen();
+                CacheController.getInstance(mContext).clearCache();
             }
             if (mRecentPanelView != null) {
                 mRecentPanelView.setScaleFactor(mScaleFactor);
@@ -829,6 +852,12 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mRecentPanelView.setCardColor(Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_CARD_BG_COLOR, 0x00ffffff,
                     UserHandle.USER_CURRENT));
+                mRecentPanelView.isScreenPinningEnabled(Settings.System.getIntForUser(
+                        resolver, Settings.System.LOCK_TO_APP_ENABLED, 0,
+                        UserHandle.USER_CURRENT) == 1);
+                mRecentPanelView.setMaxAppsToLoad(Settings.System.getIntForUser(
+                        resolver, Settings.System.RECENTS_MAX_APPS, 15,
+                        UserHandle.USER_CURRENT));
             }
 
             mRecentContent.setElevation(50);
@@ -862,7 +891,53 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             mMemBarLongClickToClear = Settings.System.getInt(resolver,
                     Settings.System.SLIM_RECENTS_MEM_DISPLAY_LONG_CLICK_CLEAR, 0) == 1;
+            mMembarcolor = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SLIM_MEM_BAR_COLOR, 0x00ffffff);
+            mMemtextcolor = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SLIM_MEM_TEXT_COLOR, 0x00ffffff);
+
+            String currentIconPack = Settings.System.getString(resolver,
+                Settings.System.SLIM_RECENTS_ICON_PACK);
+            IconPackHelper.getInstance(mContext).updatePrefs(currentIconPack);
         }
+    }
+
+    /**
+     * Settingsobserver to take care of the user settings that don't require closing the panel.
+     */
+    private class KeepOpenSettingsObserver extends UserContentObserver {
+        KeepOpenSettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void observe() {
+            super.observe();
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENT_PANEL_FAVORITES),
+                    false, this, UserHandle.USER_ALL);
+            update();
+        }
+
+        @Override
+        protected void update() {
+            ContentResolver resolver = mContext.getContentResolver();
+            if (mRecentPanelView != null) {
+                mRecentPanelView.setCurrentFavorites(Settings.System.getStringForUser(
+                        resolver, Settings.System.RECENT_PANEL_FAVORITES,
+                        UserHandle.USER_CURRENT));
+            }
+        }
+    }
+
+    public boolean onConfigurationChanged(Configuration newConfig) {
+        if (mConfiguration.densityDpi != newConfig.densityDpi) {
+            hideRecents(true);
+            rebuildRecentsScreen();
+        }
+        mConfiguration.updateFrom(newConfig);
+        return true;
     }
 
     /**
@@ -1100,6 +1175,12 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mMemText.setText(String.format(mContext.getResources().getString(R.string.recents_free_ram),available));
             mMemBar.setMax(max);
             mMemBar.setProgress(available);
+            mMemBar.getProgressDrawable().setColorFilter(mMembarcolor == 0x00ffffff
+                    ? mContext.getResources().getColor(R.color.system_accent_color)
+                    : mMembarcolor, Mode.MULTIPLY);
+            mMemText.setTextColor(mMemtextcolor == 0x00ffffff
+                    ? mContext.getResources().getColor(R.color.recents_membar_text_color)
+                    : mMemtextcolor);
     }
 
     public long getTotalMemory() {

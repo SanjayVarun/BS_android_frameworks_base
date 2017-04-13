@@ -343,7 +343,9 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
         boolean canSkipBouncer = updateMonitor.getUserCanSkipBouncer(
                 KeyguardUpdateMonitor.getCurrentUser());
         boolean secure = mLockPatternUtils.isSecure(KeyguardUpdateMonitor.getCurrentUser());
-        return (secure && !canSkipBouncer) ? SECURE_CAMERA_INTENT : INSECURE_CAMERA_INTENT;
+        boolean showCameraIntent = (Settings.Secure.getIntForUser(getContext().getContentResolver(),
+                Settings.Secure.SHOW_CAMERA_INTENT, 0, KeyguardUpdateMonitor.getCurrentUser()) == 1);
+        return (showCameraIntent ? INSECURE_CAMERA_INTENT : ((secure && !canSkipBouncer) ? SECURE_CAMERA_INTENT : INSECURE_CAMERA_INTENT));
     }
 
     /**
@@ -367,7 +369,7 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
                 // Display left shortcut
             }
         }
-        mLeftAffordanceView.setVisibility(visible ? View.VISIBLE : View.GONE);
+        mLeftAffordanceView.setVisibility((visible && !hideShortcuts()) ? View.VISIBLE : View.GONE);
     }
 
     private void updateCameraVisibility() {
@@ -393,7 +395,7 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
         Drawable drawable;
         String contentDescription;
         boolean shouldGrayScale = false;
-        boolean visible = mUserSetupComplete && !hideShortcuts();
+        boolean visible = mUserSetupComplete;
         if (mShortcutHelper.isTargetCustom(Shortcuts.LEFT_SHORTCUT)) {
             drawable = mShortcutHelper.getDrawableForTarget(Shortcuts.LEFT_SHORTCUT);
             shouldGrayScale = true;
@@ -407,7 +409,7 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
             drawable = mContext.getDrawable(R.drawable.ic_phone_24dp);
             contentDescription = mContext.getString(R.string.accessibility_phone_button);
         }
-        mLeftAffordanceView.setVisibility(visible ? View.VISIBLE : View.GONE);
+        mLeftAffordanceView.setVisibility((visible && !hideShortcuts()) ? View.VISIBLE : View.GONE);
         mLeftAffordanceView.setImageDrawable(drawable);
         mLeftAffordanceView.setContentDescription(contentDescription);
         mLeftAffordanceView.setDefaultFilter(shouldGrayScale ? mGrayScaleFilter : null);
@@ -908,6 +910,8 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
         boolean secure = mLockPatternUtils.isSecure(KeyguardUpdateMonitor.getCurrentUser());
         boolean hidebottomshortcuts = (Settings.Secure.getIntForUser(getContext().getContentResolver(),
                 Settings.Secure.HIDE_LOCKSCREEN_SHORTCUTS, 0, KeyguardUpdateMonitor.getCurrentUser()) == 1);
-        return secure || hidebottomshortcuts;
+        boolean showCameraIntent = (Settings.Secure.getIntForUser(getContext().getContentResolver(),
+                Settings.Secure.SHOW_CAMERA_INTENT, 0, KeyguardUpdateMonitor.getCurrentUser()) == 1);
+        return (showCameraIntent ? hidebottomshortcuts : (secure || hidebottomshortcuts));
     }
 }
