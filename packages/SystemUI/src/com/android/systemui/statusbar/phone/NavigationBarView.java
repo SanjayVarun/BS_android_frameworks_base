@@ -602,6 +602,8 @@ public class NavigationBarView extends LinearLayout implements TunerService.Tuna
 
         updateTaskSwitchHelper();
         setNavigationIconHints(mNavigationIconHints, true);
+
+        getHomeButton().setVertical(mVertical);
     }
 
     private void updateTaskSwitchHelper() {
