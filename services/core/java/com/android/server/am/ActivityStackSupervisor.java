@@ -1397,7 +1397,12 @@ public final class ActivityStackSupervisor implements DisplayListener {
         ProcessRecord app = mService.getProcessRecordLocked(r.processName,
                 r.info.applicationInfo.uid, true);
 
-        r.task.stack.setLaunchTime(r);
+        if (r.task != null && r.task.stack != null) {
+            r.task.stack.setLaunchTime(r);
+        } else {
+            Slog.w(TAG, "Stack or task of activity:" + r
+                    + " is null, will not setLaunchTime for it.");
+        }
 
         if (app != null && app.thread != null) {
             try {
@@ -2757,9 +2762,6 @@ public final class ActivityStackSupervisor implements DisplayListener {
             }
         }
         checkReadyForSleepLocked();
-        if (mGoingToSleep.isHeld()) {
-            mGoingToSleep.release();
-        }
     }
 
     boolean shutdownLocked(int timeout) {
@@ -2869,6 +2871,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
         removeSleepTimeouts();
 
+        if (mGoingToSleep.isHeld()) {
+            mGoingToSleep.release();
+        }
         if (mService.mShuttingDown) {
             mService.notifyAll();
         }
