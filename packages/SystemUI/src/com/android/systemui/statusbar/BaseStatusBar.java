@@ -47,6 +47,8 @@ import android.database.ContentObserver;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
+import android.hardware.SensorManager;
+import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import com.android.systemui.recents.RecentsActivity;
 import android.os.AsyncTask;
@@ -2543,6 +2545,19 @@ public abstract class BaseStatusBar extends SystemUI implements
         mStackScroller.changeViewPosition(mEmptyShadeView, mStackScroller.getChildCount() - 2);
         mStackScroller.changeViewPosition(mKeyguardIconOverflowContainer,
                 mStackScroller.getChildCount() - 3);
+
+        if (onKeyguard) {
+            hideWeatherPanelIfNecessary(visibleNotifications, getMaxKeyguardNotifications(true));
+        }
+    }
+
+    private void hideWeatherPanelIfNecessary(int visibleNotifications, int maxKeyguardNotifications) {
+        final ContentResolver resolver = mContext.getContentResolver();
+        int notifications = visibleNotifications;
+        if (mKeyguardIconOverflowContainer.getIconsView().getChildCount() > 0) {
+            notifications += 1;
+        }
+        maxKeyguardNotifications = getMaxKeyguardNotifications(true);
     }
 
     public boolean shouldShowOnKeyguard(StatusBarNotification sbn) {
@@ -2595,7 +2610,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected abstract void haltTicker();
     protected abstract void setAreThereNotifications();
     protected abstract void updateNotifications();
-    protected abstract void tick(StatusBarNotification n, boolean firstTime);
+    protected abstract void tick(StatusBarNotification n, boolean firstTime, boolean isMusic, MediaMetadata mediaMetaData);
     public abstract boolean shouldDisableNavbarGestures();
 
     public abstract void addNotification(StatusBarNotification notification,
@@ -2700,7 +2715,7 @@ public abstract class BaseStatusBar extends SystemUI implements
         // Restart the ticker if it's still running
         if (updateTicker && isForCurrentUser) {
             haltTicker();
-            tick(notification, false);
+            tick(notification, false, false, null);
         }
 
         setAreThereNotifications();

@@ -40,7 +40,6 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.android.internal.logging.MetricsLogger;
@@ -69,6 +68,8 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
     protected final ArrayList<TileRecord> mRecords = new ArrayList<TileRecord>();
     protected final View mBrightnessView;
     protected final ImageView mBrightnessIcon;
+    protected final ImageView mBrightnessIconLeft;
+    private boolean mBrightnessIconPosition;
     private final H mHandler = new H();
 
     private int mPanelPaddingBottom;
@@ -107,6 +108,7 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
         addView(mBrightnessView);
 
         mBrightnessIcon = (ImageView) mBrightnessView.findViewById(R.id.brightness_icon);
+        mBrightnessIconLeft = (ImageView) mBrightnessView.findViewById(R.id.brightness_icon_left);
 
         setupTileLayout();
 
@@ -117,10 +119,13 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
 
         updateResources();
 
+        mBrightnessIconPosition = Settings.System.getIntForUser(
+                mContext.getContentResolver(), Settings.System.BRIGHTNESS_ICON_POSITION,
+                1, UserHandle.USER_CURRENT) == 1;
+
         mBrightnessController = new BrightnessController(getContext(),
-                mBrightnessIcon,
-                (ToggleSlider) findViewById(R.id.brightness_slider),
-                (CheckBox) findViewById(R.id.brightness_auto));
+                (mBrightnessIconPosition ? mBrightnessIcon : mBrightnessIconLeft),
+                (ToggleSlider) findViewById(R.id.brightness_slider));
 
     }
 
@@ -129,8 +134,15 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
                 R.layout.qs_paged_tile_layout, this, false);
         mTileLayout.setListening(mListening);
         addView((View) mTileLayout);
-        if (getResources().getBoolean(R.bool.config_show_auto_brightness)) {
-            ((CheckBox) findViewById(R.id.brightness_auto)).setVisibility(View.VISIBLE);
+        if (getResources().getBoolean(
+                com.android.internal.R.bool.config_automatic_brightness_available)) {
+            if (mBrightnessIconPosition) {
+                ((ImageView) findViewById(R.id.brightness_icon)).setVisibility(View.VISIBLE);
+                ((ImageView) findViewById(R.id.brightness_icon_left)).setVisibility(View.GONE);
+            } else {
+                ((ImageView) findViewById(R.id.brightness_icon)).setVisibility(View.GONE);
+                ((ImageView) findViewById(R.id.brightness_icon_left)).setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -186,9 +198,18 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
 
     private void setBrightnessIcon() {
         boolean brightnessIconEnabled = Settings.System.getIntForUser(
-            mContext.getContentResolver(), Settings.System.BRIGHTNESS_ICON,
+                mContext.getContentResolver(), Settings.System.BRIGHTNESS_ICON,
                 0, UserHandle.USER_CURRENT) == 1;
-        mBrightnessIcon.setVisibility(brightnessIconEnabled ? View.VISIBLE : View.GONE);
+        mBrightnessIconPosition = Settings.System.getIntForUser(
+                mContext.getContentResolver(), Settings.System.BRIGHTNESS_ICON_POSITION,
+                1, UserHandle.USER_CURRENT) == 1;
+        if (mBrightnessIconPosition) {
+            mBrightnessIcon.setVisibility(brightnessIconEnabled ? View.VISIBLE : View.GONE);
+            mBrightnessIconLeft.setVisibility(View.GONE);
+        } else {
+            mBrightnessIconLeft.setVisibility(brightnessIconEnabled ? View.VISIBLE : View.GONE);
+            mBrightnessIcon.setVisibility(View.GONE);
+        }
         updateResources();
     }
 

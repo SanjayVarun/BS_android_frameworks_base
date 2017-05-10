@@ -68,6 +68,7 @@ import com.android.systemui.qs.tiles.MagiskManagerTile;
 import com.android.systemui.qs.tiles.MusicTile;
 import com.android.systemui.qs.tiles.NavigationBarTile;
 import com.android.systemui.qs.tiles.NightDisplayTile;
+import com.android.systemui.qs.tiles.PerfProfileTile;
 import com.android.systemui.qs.tiles.PulseTile;
 import com.android.systemui.qs.tiles.RebootTile;
 import com.android.systemui.qs.tiles.RotationLockTile;
@@ -453,6 +454,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
             String tileSpec = previousTiles.get(i);
             if (!tileSpec.startsWith(CustomTile.PREFIX)) continue;
             if (!newTiles.contains(tileSpec)) {
+                // Get the custom tile ready to be removed
                 ComponentName component = CustomTile.getComponentFromSpec(tileSpec);
                 Intent intent = new Intent().setComponent(component);
                 TileLifecycleManager lifecycleManager = new TileLifecycleManager(new Handler(),
@@ -514,6 +516,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (tileSpec.equals("compass")) return new CompassTile(this);
         else if (tileSpec.equals("weather")) return new WeatherTile(this);
         else if (tileSpec.equals("magiskmanager")) return new MagiskManagerTile(this);
+        else if (tileSpec.equals("performance")) return new PerfProfileTile(this);
         else if (tileSpec.equals(mImageTileSpec)) {
             if (isImageTileInstalled()) {
                 return new ImageTile(this);
@@ -589,5 +592,34 @@ public class QSTileHost implements QSTile.Host, Tunable {
         } catch (UnsupportedEncodingException e) {
         }
         return false;
+    }
+
+    /**
+     * Remove custom tiles with the same package name
+     **/
+    public void removeTilesWithSamePkg(String pkgName) {
+        List<String> newTileSpecs = new ArrayList<>();
+            newTileSpecs.addAll(mTileSpecs);
+            for (String spec : mTileSpecs) {
+            if (!spec.startsWith(CustomTile.PREFIX)) continue;
+            if (spec.contains(pkgName)) {
+                // Get the custom tile ready to be removed
+                ComponentName component = CustomTile.getComponentFromSpec(spec);
+                Intent intent = new Intent().setComponent(component);
+                TileLifecycleManager lifecycleManager = new TileLifecycleManager(new Handler(),
+                        mContext, mServices, new Tile(), intent,
+                        new UserHandle(ActivityManager.getCurrentUser()));
+                lifecycleManager.onStopListening();
+                lifecycleManager.onTileRemoved();
+                lifecycleManager.flushMessagesAndUnbind();
+                // Remove spec from newTileSpecs
+                newTileSpecs.remove(spec);
+            }
+        }
+        // Save into Settings
+        if (newTileSpecs.size() != mTileSpecs.size()) {
+            Secure.putStringForUser(getContext().getContentResolver(), QSTileHost.TILES_SETTING,
+                    TextUtils.join(",", newTileSpecs), ActivityManager.getCurrentUser());
+        }
     }
 }

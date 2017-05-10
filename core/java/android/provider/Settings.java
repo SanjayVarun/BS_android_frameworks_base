@@ -3815,7 +3815,7 @@ public final class Settings {
          */
         public static final String REMOVE_TILE_SUMMARY = "remove_tile_summary";
 
-	/**
+        /**
          * Change quick settings tiles animation style
          *
          * @hide
@@ -3993,6 +3993,12 @@ public final class Settings {
          * @hide
          */
         public static final String BRIGHTNESS_ICON = "brightness_icon";
+
+	/**
+         * Brightness Icon position on Brightness Slider
+         * @hide
+         */
+        public static final String BRIGHTNESS_ICON_POSITION = "brightness_icon_position";
 
         /**
          * Transparent volume dialog
@@ -4218,6 +4224,19 @@ public final class Settings {
          * @hide
          */
         public static final String BATTERY_LIGHT_REALLY_FULL_COLOR = "battery_light_really_full_color";
+
+        /**
+         * Whether to blend battery light colors between full and low value
+         * @hide
+         */
+        public static final String BATTERY_LIGHT_BLEND_COLOR = "battery_light_blend_color";
+
+        /**
+         * Whether to reverse the blend direction of battery light colors between full and low value
+         * (HSV color model)
+         * @hide
+         */
+        public static final String BATTERY_LIGHT_BLEND_COLOR_REVERSE = "battery_light_blend_color_reverse";
 
         /**
          * Show four g instead of lte
@@ -4578,6 +4597,21 @@ public final class Settings {
          */
         public static final String RECENT_PANEL_EXPANDED_MODE = "recent_panel_expanded_mode";
 
+
+        /**
+         * Whether to show or hide Weather panel in expanded header
+         * @hide
+         */
+        public static final String HEADER_WEATHER_ENABLED = "header_weather_enabled";
+
+
+        /**
+         * Whether to show or hide Weather panel image in expanded header
+         * @hide
+         */
+        public static final String HEADER_WEATHER_IMAGE_ENABLED = "header_weather_image_enabled";
+
+
         /**
          * Recent panel: Show topmost task
          *
@@ -4827,6 +4861,24 @@ public final class Settings {
          * @hide
          */
         public static final String HOME_RESIZE_DURATION = "home_resize_anim_duration";
+
+        /**
+         * Whether to show the weather info on the lock screen
+         * @hide
+         */
+        public static final String LOCK_SCREEN_SHOW_WEATHER = "lock_screen_show_weather";
+
+        /**
+         * Whether to show the weather location on lock screen
+         * @hide
+         */
+        public static final String LOCK_SCREEN_SHOW_WEATHER_LOCATION = "lock_screen_show_weather_location";
+
+        /**
+         * Whether to show the weather condition icon on lock screen
+         * @hide
+         */
+        public static final String LOCK_SCREEN_WEATHER_CONDITION_ICON = "lock_screen_weather_condition_icon";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
