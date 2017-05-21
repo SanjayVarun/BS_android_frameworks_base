@@ -153,6 +153,7 @@ public class UsbDeviceManager {
     private UsbDebuggingManager mDebuggingManager;
     private final UsbAlsaManager mUsbAlsaManager;
     private Intent mBroadcastedIntent;
+    private boolean mPendingBootBroadcast;
 
     private class AdbSettingsObserver extends ContentObserver {
         public AdbSettingsObserver() {
@@ -780,13 +781,16 @@ public class UsbDeviceManager {
                     if (UsbManager.containsFunction(mCurrentFunctions,
                             UsbManager.USB_FUNCTION_ACCESSORY)) {
                         updateCurrentAccessory();
-                    } else if (!mConnected) {
-                        // restore defaults when USB is disconnected
-                        setEnabledFunctions(null, false, false);
                     }
                     if (mBootCompleted) {
+                        if (!mConnected) {
+                            // restore defaults when USB is disconnected
+                            setEnabledFunctions(null, false, false);
+                        }
                         updateUsbStateBroadcastIfNeeded();
                         updateUsbFunctions();
+                    } else {
+                        mPendingBootBroadcast = true;
                     }
                     break;
                 case MSG_UPDATE_HOST_STATE:
@@ -798,6 +802,8 @@ public class UsbDeviceManager {
                     updateUsbNotification();
                     if (mBootCompleted) {
                         updateUsbStateBroadcastIfNeeded();
+                    } else {
+                        mPendingBootBroadcast = true;
                     }
                     break;
                 case MSG_UPDATE_CHARGING_STATE:
@@ -822,6 +828,10 @@ public class UsbDeviceManager {
                     break;
                 case MSG_BOOT_COMPLETED:
                     mBootCompleted = true;
+                    if (mPendingBootBroadcast) {
+                        updateUsbStateBroadcastIfNeeded();
+                        mPendingBootBroadcast = false;
+                    }
                     if (mCurrentAccessory != null) {
                         getCurrentSettings().accessoryAttached(mCurrentAccessory);
                     }

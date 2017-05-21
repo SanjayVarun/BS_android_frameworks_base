@@ -15,7 +15,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 *
 */
-package com.android.keyguard;
+package com.android.internal.util.aicp;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -40,7 +40,7 @@ import android.provider.Settings;
 import android.util.Log;
 
 public class OmniJawsClient {
-    private static final String TAG = "WeatherService:OmniJawsClient";
+    private static final String TAG = "SystemUI:OmniJawsClient";
     private static final boolean DEBUG = false;
     public static final String SERVICE_PACKAGE = "org.omnirom.omnijaws";
     public static final Uri WEATHER_URI
@@ -50,6 +50,8 @@ public class OmniJawsClient {
 
     private static final String ICON_PACKAGE_DEFAULT = "org.omnirom.omnijaws";
     private static final String ICON_PREFIX_DEFAULT = "weather";
+    private static final String EXTRA_ERROR = "error";
+    public static final int EXTRA_ERROR_DISABLED = 2;
 
     public static final String[] WEATHER_PROJECTION = new String[]{
             "city",
@@ -64,13 +66,17 @@ public class OmniJawsClient {
             "forecast_condition",
             "forecast_condition_code",
             "time_stamp",
-            "forecast_date"
+            "forecast_date",
+            "pin_wheel"
     };
 
     final String[] SETTINGS_PROJECTION = new String[] {
             "enabled",
             "units"
     };
+
+    private static final String WEATHER_UPDATE = "org.omnirom.omnijaws.WEATHER_UPDATE";
+    private static final String WEATHER_ERROR = "org.omnirom.omnijaws.WEATHER_ERROR";
 
     private static final DecimalFormat sNoDigitsFormat = new DecimalFormat("0");
 
@@ -86,6 +92,7 @@ public class OmniJawsClient {
         public List<DayForecast> forecasts;
         public String tempUnits;
         public String windUnits;
+        public String pinWheel;
 
         public String toString() {
             return city + ":" + new Date(timeStamp) + ": " + windSpeed + ":" + windDirection + ":" +conditionCode + ":" + temp + ":" + humidity + ":" + condition + ":" + tempUnits + ":" + windUnits + ": " + forecasts;
@@ -111,13 +118,21 @@ public class OmniJawsClient {
 
     public static interface OmniJawsObserver {
         public void weatherUpdated();
+        public void weatherError(int errorReason);
     }
 
     private class WeatherUpdateReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(final Context context, Intent intent) {
+            String action = intent.getAction();
             for (OmniJawsObserver observer : mObserver) {
-                observer.weatherUpdated();
+                if (action.equals(WEATHER_UPDATE)) {
+                    observer.weatherUpdated();
+                }
+                if (action.equals(WEATHER_ERROR)) {
+                    int errorReason = intent.getIntExtra(EXTRA_ERROR, 0);
+                    observer.weatherError(errorReason);
+                }
             }
         }
     }
@@ -130,6 +145,12 @@ public class OmniJawsClient {
         void observe() {
             mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
                     Settings.System.OMNIJAWS_WEATHER_ICON_PACK),
+                    false, this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.OMNIJAWS_WINDSPEED_M_S),
+                    false, this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.OMNIJAWS_WINDDIRECTION_DISPLAY),
                     false, this, UserHandle.USER_ALL);
             update();
         }
@@ -155,6 +176,8 @@ public class OmniJawsClient {
     private String mIconPrefix;
     private String mSettingIconPackage;
     private boolean mMetric;
+    private boolean mWindSpeedMPS;
+    private boolean mWindDirectionPinWheel;
     private List<OmniJawsObserver> mObserver;
     private WeatherUpdateReceiver mReceiver;
     private OmniJawsSettingsObserver mSettingsObserver;
@@ -178,14 +201,22 @@ public class OmniJawsClient {
         }
     }
 
-    public void updateWeather(boolean force) {
+    public void updateWeather() {
         if (isOmniJawsServiceInstalled()) {
             Intent updateIntent = new Intent(Intent.ACTION_MAIN)
                     .setClassName(SERVICE_PACKAGE, SERVICE_PACKAGE + ".WeatherService");
             updateIntent.setAction(SERVICE_PACKAGE + ".ACTION_UPDATE");
-            updateIntent.putExtra("force", force);
             mContext.startService(updateIntent);
         }
+    }
+
+    public Intent getSettingsIntent() {
+        if (isOmniJawsServiceInstalled()) {
+            Intent settings = new Intent(Intent.ACTION_MAIN)
+                    .setClassName("org.omnirom.omnijaws", "org.omnirom.omnijaws.SettingsActivity");
+            return settings;
+        }
+        return null;
     }
 
     public WeatherInfo getWeatherInfo() {
@@ -223,8 +254,8 @@ public class OmniJawsClient {
                         c.moveToPosition(i);
                         if (i == 0) {
                             mCachedInfo.city = c.getString(0);
-                            mCachedInfo.windSpeed = getFormattedValue(c.getFloat(1));
-                            mCachedInfo.windDirection = String.valueOf(c.getInt(2)) + "\u00b0";
+                            mCachedInfo.windSpeed = getFormattedValue(c.getFloat(1) * (float)(mWindSpeedMPS ? 1./3.6 : 1));
+                            mCachedInfo.windDirection = mWindDirectionPinWheel ? c.getString(13) : String.valueOf(c.getInt(2)) + "\u00b0";
                             mCachedInfo.conditionCode = c.getInt(3);
                             mCachedInfo.temp = getFormattedValue(c.getFloat(4));
                             mCachedInfo.humidity = c.getString(5);
@@ -360,7 +391,8 @@ public class OmniJawsClient {
     }
 
     private String getWindUnit() {
-        return mMetric ? "km/h":"mph";
+        return mMetric ?
+             (mWindSpeedMPS ? "m/s" : "km/h") :"mph";
     }
 
     private void updateSettings() {
@@ -373,6 +405,11 @@ public class OmniJawsClient {
                 mSettingIconPackage = iconPack;
                 loadCustomIconPackage();
             }
+
+            mWindSpeedMPS = Settings.System.getInt(mContext.getContentResolver(),
+                 Settings.System.OMNIJAWS_WINDSPEED_M_S, 0) == 1;
+            mWindDirectionPinWheel = Settings.System.getInt(mContext.getContentResolver(),
+                 Settings.System.OMNIJAWS_WINDDIRECTION_DISPLAY, 0) == 1;
         }
     }
 
@@ -389,7 +426,7 @@ public class OmniJawsClient {
     }
 
     public Drawable getDefaultWeatherConditionImage() {
-        return mContext.getResources().getDrawable(R.drawable.keyguard_weather_default_on);
+        return mContext.getResources().getDrawable(com.android.internal.R.drawable.ic_qs_weather_default_on);
     }
 
     public void addObserver(OmniJawsObserver observer) {
@@ -402,7 +439,8 @@ public class OmniJawsClient {
             }
             mReceiver = new WeatherUpdateReceiver();
             IntentFilter filter = new IntentFilter();
-            filter.addAction("org.omnirom.omnijaws.WEATHER_UPDATE");
+            filter.addAction(WEATHER_UPDATE);
+            filter.addAction(WEATHER_ERROR);
             mContext.registerReceiver(mReceiver, filter);
         }
         mObserver.add(observer);
